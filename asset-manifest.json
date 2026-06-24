@@ -1,0 +1,10 @@
+{
+  "files": {
+    "main.js": "/MovieSearch.io/static/js/main.bb04ae64.js",
+    "index.html": "/MovieSearch.io/index.html",
+    "main.bb04ae64.js.map": "/MovieSearch.io/static/js/main.bb04ae64.js.map"
+  },
+  "entrypoints": [
+    "static/js/main.bb04ae64.js"
+  ]
+}
