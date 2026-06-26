@@ -1,6 +1,7 @@
 {
   "name": "moviesearch",
   "version": "1.0.0",
+  "homepage": "https://te-ui.github.io/MovieSearch.io/",
   "private": true,
   "dependencies": {
     "@testing-library/jest-dom": "^5.16.5",
@@ -14,6 +15,8 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build",
     "client": "cross-env PORT=3001 react-scripts start",
     "server": "node server/index.js",
     "start": "concurrently -k \"npm run server\" \"npm run client\"",
@@ -36,6 +39,7 @@
   },
   "devDependencies": {
     "concurrently": "^10.0.3",
-    "cross-env": "^10.1.0"
+    "cross-env": "^10.1.0",
+    "gh-pages": "^6.3.0"
   }
 }

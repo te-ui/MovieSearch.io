@@ -186,8 +186,8 @@ const posterUrl = (path) => path ? `https://image.tmdb.org/t/p/w342${path}` : nu
 async function fetchWatchProviders(id, mediaType, countryCode) {
   const endpoint = mediaType === 'tv' ? 'tv' : 'movie';
   try {
-    const res = await fetch(`/api/watch/${endpoint}/${encodeURIComponent(id)}`);
-    const data = await res.json();
+    const res = await fetch(`https://moviesearch-io.onrender.com`);
+    const data =await res.json();
     return data.results?.[countryCode] || null;
   } catch (e) {
     console.error('watch providers proxy failed', e);
