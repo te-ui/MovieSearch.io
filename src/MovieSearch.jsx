@@ -134,7 +134,7 @@ const STYLES = `
   .trending-strip::-webkit-scrollbar { display: none; }
   .trending-pill { flex-shrink: 0; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,209,102,0.14); border-radius: 20px; padding: 8px 16px; font-size: 0.8rem; color: var(--text); cursor: pointer; transition: all 0.2s; white-space: nowrap; backdrop-filter: blur(12px) saturate(140%); -webkit-backdrop-filter: blur(12px) saturate(140%); }
   .trending-pill:hover { border-color: var(--accent2); color: var(--accent2); background: rgba(255,209,102,0.08); }
-  
+
   @keyframes spin { to { transform: rotate(360deg); } }
   @media (max-width: 600px) { .hero { padding: 40px 20px 28px; } .results-section { padding: 0 16px 40px; } .header { padding: 20px 20px 16px; } .detail-body { padding: 18px 18px 32px; } .grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 14px; } }
 `;
@@ -150,47 +150,58 @@ const COUNTRIES = [
   { code: "ZA", name: "South Africa" },
   { code: "IN", name: "India" },
 ];
-// TMDB API key is kept server-side. Client calls local proxy at `/api`.
+
+// TMDB key is hardcoded directly here since this is a static frontend-only
+// app deployed on GitHub Pages with no backend to hide it behind. It will be
+// visible in the deployed JS bundle — that's expected and fine for TMDB's
+// rate-limited public API.
+const TMDB_API_KEY = "d42f71e99226be1c6e1e4714c346330d";
+const TMDB_BASE = "https://api.themoviedb.org/3";
+
 async function searchTMDB(query, mediaType) {
   if (!query || !query.trim()) return [];
 
   // map UI filter to TMDB search type
-  let type = 'multi';
-  if (mediaType === 'Movies') type = 'movie';
-  else if (mediaType === 'TV Shows') type = 'tv';
+  let type = "multi";
+  if (mediaType === "Movies") type = "movie";
+  else if (mediaType === "TV Shows") type = "tv";
 
   try {
-    const res = await fetch(`/api/search?q=${encodeURIComponent(query)}&type=${type}`);
+    const res = await fetch(
+      `${TMDB_BASE}/search/${type}?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}&include_adult=false`
+    );
     const data = await res.json();
     const results = data.results || [];
 
-    if (type === 'movie') {
-      return results.map((item) => ({ ...item, media_type: 'movie' }));
+    if (type === "movie") {
+      return results.map((item) => ({ ...item, media_type: "movie" }));
     }
 
-    if (type === 'tv') {
-      return results.map((item) => ({ ...item, media_type: 'tv' }));
+    if (type === "tv") {
+      return results.map((item) => ({ ...item, media_type: "tv" }));
     }
 
     return results
-      .filter((item) => item.media_type !== 'person')
-      .map((item) => ({ ...item, media_type: item.media_type || (item.title ? 'movie' : 'tv') }));
+      .filter((item) => item.media_type !== "person")
+      .map((item) => ({ ...item, media_type: item.media_type || (item.title ? "movie" : "tv") }));
   } catch (e) {
-    console.error('search proxy failed', e);
+    console.error("TMDB search failed", e);
     return [];
   }
 }
 
-const posterUrl = (path) => path ? `https://image.tmdb.org/t/p/w342${path}` : null;
+const posterUrl = (path) => (path ? `https://image.tmdb.org/t/p/w342${path}` : null);
 
 async function fetchWatchProviders(id, mediaType, countryCode) {
-  const endpoint = mediaType === 'tv' ? 'tv' : 'movie';
+  const endpoint = mediaType === "tv" ? "tv" : "movie";
   try {
-    const res = await fetch(`https://moviesearch-io.onrender.com`);
-    const data =await res.json();
+    const res = await fetch(
+      `${TMDB_BASE}/${endpoint}/${id}/watch/providers?api_key=${TMDB_API_KEY}`
+    );
+    const data = await res.json();
     return data.results?.[countryCode] || null;
   } catch (e) {
-    console.error('watch providers proxy failed', e);
+    console.error("watch providers fetch failed", e);
     return null;
   }
 }
@@ -321,16 +332,13 @@ export default function MovieSearch() {
   const handleKey = (e) => e.key === "Enter" && doSearch(query);
 
   const pickRandom = async () => {
-    // If we already have results, pick one at random
     try {
       if (query.trim() && results && results.length > 0) {
         const choice = results[Math.floor(Math.random() * results.length)];
-        console.log("Surprise pick from results:", choice);
         setSelected(choice);
         return;
       }
 
-      // Fallback: pick a trending title, search it, then pick a random result
       const seed = TRENDING[Math.floor(Math.random() * TRENDING.length)];
       setQuery(seed);
       setLoading(true);
@@ -339,10 +347,7 @@ export default function MovieSearch() {
       setLoading(false);
       if (data && data.length > 0) {
         const choice = data[Math.floor(Math.random() * data.length)];
-        console.log("Surprise pick from trending search:", choice);
         setSelected(choice);
-      } else {
-        console.log("Surprise pick: no candidates found for", seed);
       }
     } catch (err) {
       console.error("Surprise pick failed", err);
